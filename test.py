@@ -98,7 +98,15 @@ if response.status_code == 200:
     # The request was successful
     # The response body contains a list of all studies
     studies = response.json()
-    get_studies_by_name(studies, 'TCGA-CS-5396')
+    print(len(studies))
+    for study in studies:
+        series_list = get_series(study)
+        # print(study)
+        # break
+        for series in series_list:
+            # print(len(series['Instances']))
+            break
+            
 
     print("DICOM files retrieved successfully!")
 else:

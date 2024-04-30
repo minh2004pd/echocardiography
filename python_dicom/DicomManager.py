@@ -2,12 +2,10 @@ from DicomUploader import DicomUploader
 from DicomDownloader import DicomDownloader
 from DicomClientServer import DicomClientServer
 from DicomProcessor import DicomProcessor
-import threading
-import time
-import asyncio
-import websockets
+from DicomHandler import DicomHandler
 import asyncio
 from datetime import datetime
+from pathlib import Path
 
 class DicomManager:
     def __init__(self, session, base_url, auth):
@@ -18,25 +16,26 @@ class DicomManager:
         self.dicom_downloader = DicomDownloader(session, base_url, auth)
         self.dicom_client = DicomClientServer(session, base_url, auth)
         self.dicom_processor = DicomProcessor(session, base_url, auth)
-        self.start_monitoring()
+        self.dicom_handler = DicomHandler(session, base_url, auth)
+        # self.start_monitoring()
     
-    def start_monitoring(self, check_interval=3):
-        def monitor():
-            last_check = self.dicom_processor.get_list_instances()
-            while True:
-                time.sleep(check_interval)
-                current_check = self.dicom_processor.get_list_instances()
-                if last_check is not None and current_check is not None:
-                    if len(current_check) > len(last_check):
-                        print(f"New DICOM file(s) have been uploaded to the server. {len(current_check) - len(last_check)}")
-                        difference = [item for item in current_check if item not in last_check]
-                        self.dicom_processor.process_new_instances(difference)
-                    else:
-                        print("No New")
-                last_check = current_check
+    # def start_monitoring(self, check_interval=3):
+    #     def monitor():
+    #         last_check = self.dicom_processor.get_list_instances()
+    #         while True:
+    #             time.sleep(check_interval)
+    #             current_check = self.dicom_processor.get_list_instances()
+    #             if last_check is not None and current_check is not None:
+    #                 if len(current_check) > len(last_check):
+    #                     print(f"New DICOM file(s) have been uploaded to the server. {len(current_check) - len(last_check)}")
+    #                     difference = [item for item in current_check if item not in last_check]
+    #                     self.dicom_processor.process_new_instances(difference)
+    #                 else:
+    #                     print("No New")
+    #             last_check = current_check
 
-        monitoring_thread = threading.Thread(target=monitor)
-        monitoring_thread.start()
+    #     monitoring_thread = threading.Thread(target=monitor)
+    #     monitoring_thread.start()
 
     def upload_dicom_file(self, filepath):
         self.dicom_uploader.upload_dicom_file(filepath)
@@ -48,10 +47,10 @@ class DicomManager:
         response = self.dicom_client.get_studies()
         
         # Check if the request was successful
-        if response.status_code == 200:
+        if response is not None:
             # The request was successful
             # The response body contains a list of all studies
-            studies = response.json()
+            studies = response
             self.dicom_downloader.get_studies_by_name(studies, name)
 
             print("DICOM files retrieved successfully!")
@@ -63,13 +62,28 @@ class DicomManager:
         response = self.dicom_client.get_studies()
         
         # Check if the request was successful
-        if response.status_code == 200:
+        if response is not None:
             # The request was successful
             # The response body contains a list of all studies
-            studies = response.json()
+            studies = response
             self.dicom_downloader.get_all_studies(studies)
 
             print("DICOM files retrieved successfully!")
         else:
             # The request failed
             print("Failed to retrieve DICOM files. Status code:", response.status_code)
+    
+    def get_new_instance(self, instanceID):
+        self.dicom_downloader.load_instance_by_ID(instanceID)
+        # self.dicom_handler.handle_dicom()
+
+    def handle_new_instance(self):
+        self.dicom_handler.handle_dicom()
+    
+    def isExits(self, instanceId):
+        response = self.dicom_client.get_instance_by_ID(instanceId)
+        if response is None:
+            return False
+        else:
+            return True
+        

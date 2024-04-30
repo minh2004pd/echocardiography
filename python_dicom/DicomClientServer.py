@@ -21,9 +21,20 @@ class DicomClientServer:
     def get_instances(self, series):
         response = self.session.get(f'{self.base_url}/series/{series["ID"]}/instances', auth=self.auth)
         return response.json()
+    
+    def get_instance_by_ID(self, instanceID):
+        response = self.session.get(f'{self.base_url}/instances/{instanceID}', auth=self.auth)
+        return response.json()
 
     def get_dicom_file_data(self, instance):
         response = self.session.get(f'{self.base_url}/instances/{instance["ID"]}/file', auth=self.auth)
+        if response.status_code == 200:
+            return response.content
+        else:
+            return None
+    
+    def get_dicom_file_data_by_ID(self, instanceID):
+        response = self.session.get(f'{self.base_url}/instances/{instanceID}/file', auth=self.auth)
         if response.status_code == 200:
             return response.content
         else:

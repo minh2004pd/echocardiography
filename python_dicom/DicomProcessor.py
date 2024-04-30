@@ -28,13 +28,13 @@ class DicomProcessor:
         else:
             print('ERROR!!!')
     
-    def process_new_instances(self, instances):
-        for instance in instances:
-            dicom_file_data = self.dicom_client.get_dicom_file_data(instance)
-            if dicom_file_data is not None:
-                self.dicom_filewriter.write_dicom_file_data(dicom_file_data, "new_file", instance['Seq'])
-            else:
-                print('ERROR!!!')
+    def process_new_instance(self, instanceID):
+        instance = self.dicom_client.get_instance_by_ID(instanceID)
+        dicom_file_data = self.dicom_client.get_dicom_file_data(instance)
+        if dicom_file_data is not None:
+            self.dicom_filewriter.write_dicom_file_data(dicom_file_data, "new_file", instance['MainDicomTags']['InstanceNumber'])
+        else:
+            print('ERROR!!!')
     
     def process_count_instance(self, series):
         return len(series['Instances'])

@@ -21,3 +21,6 @@ class DicomDownloader:
         for study in studies:
             name = self.dicom_client.get_study_name(study)
             self.dicom_processor.process_study(study, name)
+    
+    def load_instance_by_ID(self, instanceID):
+        self.dicom_processor.process_new_instance(instanceID)

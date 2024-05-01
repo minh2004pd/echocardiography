@@ -3,6 +3,7 @@ import pydicom
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import cv2 
 import uuid
 from pathlib import Path
 from PIL import Image
@@ -13,9 +14,33 @@ class DicomHandler:
         self.session = session
         self.auth = auth
         self.base_url = base_url
+    
+    def handle_dicom1(self, directory = '.\\dicom_files_import\\new_file', directory1 = ".\\dicom_files_import\\new_file_dicom"):
+        # Generate a new Series Instance UID
+        new_series_uid = generate_uid()
+        for filename in os.listdir(directory):
+            if filename.endswith(".dcm"):
+                filepath = os.path.join(directory, filename)
+                self.ds = pydicom.dcmread(filepath)
+                pixel_data = self.ds.pixel_array
 
-    def handle_dicom(self, directory = 'D:\\OneDrive\\Máy tính\\python_dicom\\dicom_files_import\\new_file'):
-        directory1 = "D:\\OneDrive\\Máy tính\\python_dicom\\dicom_files_import\\new_file_dicom"
+                line_start = (100, 100)  
+                line_end = (400, 400)    
+                thickness = 9           
+                color = 255    
+
+                line_image = np.zeros_like(pixel_data)
+                cv2.line(line_image, line_start, line_end, color, thickness)
+
+                pixel_data += line_image
+                self.ds.PixelData = pixel_data.tobytes()
+                # Change the Series Instance UID to save as a different series
+                self.ds.SeriesInstanceUID = new_series_uid
+                
+                self.ds.save_as(os.path.join(directory1, f'{filename}_modified.dcm'))
+                # os.remove(filepath)  # Delete the file
+
+    def handle_dicom(self, directory = '.\\dicom_files_import\\new_file', directory1 = ".\\dicom_files_import\\new_file_dicom"):
         # Generate a new Series Instance UID
         new_series_uid = generate_uid()
         for filename in os.listdir(directory):

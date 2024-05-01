@@ -78,12 +78,5 @@ class DicomManager:
         # self.dicom_handler.handle_dicom()
 
     def handle_new_instance(self):
-        self.dicom_handler.handle_dicom()
-    
-    def isExits(self, instanceId):
-        response = self.dicom_client.get_instance_by_ID(instanceId)
-        if response is None:
-            return False
-        else:
-            return True
+        self.dicom_handler.handle_dicom1()
         

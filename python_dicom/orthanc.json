@@ -4,5 +4,5 @@
   "Plugins" : [
     "/usr/local/share/orthanc/plugins"
   ],
-  "PythonScript" : "/etc/orthanc/python_dicom/python_dicom/hello.py"
+  "PythonScript" : "/etc/orthanc/hello.py"
 }

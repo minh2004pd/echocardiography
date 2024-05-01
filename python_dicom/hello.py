@@ -22,7 +22,7 @@ def OnStoredInstance(dicom, instanceId):
     print("helloabc")
 
     # Write the instanceId to a file in the Docker volume
-    with open('/etc/orthanc/instance_ids.txt', 'w') as f:
+    with open('/app/instance_ids.txt', 'w') as f:
         f.write(instanceId + '\n')
 
     

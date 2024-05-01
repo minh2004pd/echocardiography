@@ -18,9 +18,9 @@ from collections import defaultdict
 import os
 import glob
 
-path_to_dicoms_dir = Path('D:\\OneDrive\\Máy tính\\python_dicom\\dicom_files_import\\new_file_dicom')
+path_to_dicoms_dir = Path('.\\dicom_files_import\\new_file_dicom')
 
-path_to_dicoms_dir1 = Path('D:\\OneDrive\\Máy tính\\python_dicom\\dicom_files_import\\new_file')
+path_to_dicoms_dir1 = Path('.\\dicom_files_import\\new_file')
 
 base_url = 'http://localhost:8042'
 

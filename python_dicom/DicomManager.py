@@ -6,6 +6,7 @@ from DicomHandler import DicomHandler
 import asyncio
 from datetime import datetime
 from pathlib import Path
+from DicomListener import DicomListener
 
 class DicomManager:
     def __init__(self, session, base_url, auth):
@@ -17,6 +18,7 @@ class DicomManager:
         self.dicom_client = DicomClientServer(session, base_url, auth)
         self.dicom_processor = DicomProcessor(session, base_url, auth)
         self.dicom_handler = DicomHandler(session, base_url, auth)
+        self.dicom_listener = DicomListener(session, base_url, auth, self)
         # self.start_monitoring()
     
     # def start_monitoring(self, check_interval=3):
@@ -79,4 +81,7 @@ class DicomManager:
 
     def handle_new_instance(self):
         self.dicom_handler.handle_dicom1()
+    
+    def start_listening(self):
+        self.dicom_listener.listen()
         

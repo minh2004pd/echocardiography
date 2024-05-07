@@ -26,7 +26,9 @@ my_session = requests.session()
 
 dicom_manager = DicomManager(my_session, base_url, auth)
 
-dicom_manager.upload_all_dicom_files(path_to_dicoms_dir)
+dicom_manager.start_listening()
+
+#dicom_manager.upload_all_dicom_files(path_to_dicoms_dir)
 # dicom_manager.get_all_studies()
 # dicom_manager.get_studies_by_name('TCGA-CS-5396')
 

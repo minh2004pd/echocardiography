@@ -47,4 +47,4 @@ Now when you run the command successfully, the ```hello.py``` file will run on c
 
 To test the functionality, you can run the file ```upload_dicom.py``` to upload some DICOM file to the server.
 
-(Note that you must run the above 2 programs in 2 separate processes)
+(Note that you must run the above 2 files in 2 separate processes)

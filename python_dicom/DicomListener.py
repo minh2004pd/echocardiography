@@ -9,8 +9,8 @@ import glob
 
 class DicomListener:
     def __init__(self, session, base_url, auth, dicom_manager):
-        self.path_to_dicoms_dir = Path('.\\dicom_files_import\\new_file_dicom')
-        self.path_to_dicoms_dir1 = Path('.\\dicom_files_import\\new_file')
+        self.path_to_dicoms_dir_handled = Path('.\\dicom_files_import\\new_file_dicom')
+        self.path_to_dicoms_dir_new_file = Path('.\\dicom_files_import\\new_file')
         self.auth = auth
         self.session = session
         self.base_url = base_url
@@ -43,9 +43,20 @@ class DicomListener:
                 elapsed_time = time.time() - self.start_time
                 if elapsed_time >= 3:
                     self.dicom_manager.handle_new_instance()
-                    self.dicom_manager.upload_all_dicom_files(self.path_to_dicoms_dir)
-                    self.reset_dir(self.path_to_dicoms_dir)
-                    self.reset_dir(self.path_to_dicoms_dir1)
+                    self.dicom_manager.upload_all_dicom_files(self.path_to_dicoms_dir_handled)
+                    self.reset_dir(self.path_to_dicoms_dir_handled)
+                    self.reset_dir(self.path_to_dicoms_dir_new_file)
                     with open('.\\instance_ids.txt', 'w') as f:
                         pass
                     self.start_time = time.time()
+    def set_path_to_dicoms_dir_handled(self, path):
+        self.path_to_dicoms_dir_handled = path
+
+    def set_path_to_dicoms_dir_new_file(self, path):
+        self.path_to_dicoms_dir_new_file = path
+
+    def get_path_to_dicoms_dir_handled(self):
+        return self.path_to_dicoms_dir_handled
+    
+    def get_path_to_dicoms_dir_new_file(self):
+        return self.path_to_dicoms_dir_new_file

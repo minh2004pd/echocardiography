@@ -14,7 +14,6 @@ class DicomListener:
         self.auth = auth
         self.session = session
         self.base_url = base_url
-        self.my_session = requests.session()
         self.dicom_manager = dicom_manager
         self.last_content = "0"
         self.start_time = time.time()
@@ -29,7 +28,7 @@ class DicomListener:
 
     def listen(self):
         while True:
-            with open('.\\instance_ids.txt', 'r') as f:
+            with open('.\\python_dicom\\instance_ids.txt', 'r') as f:
                 cur_content = f.read().replace(' ', '').replace('\n', '').replace('\t', '')
 
             if cur_content == '':
@@ -46,7 +45,7 @@ class DicomListener:
                     self.dicom_manager.upload_all_dicom_files(self.path_to_dicoms_dir_handled)
                     self.reset_dir(self.path_to_dicoms_dir_handled)
                     self.reset_dir(self.path_to_dicoms_dir_new_file)
-                    with open('.\\instance_ids.txt', 'w') as f:
+                    with open('.\\python_dicom\\instance_ids.txt', 'w') as f:
                         pass
                     self.start_time = time.time()
     def set_path_to_dicoms_dir_handled(self, path):

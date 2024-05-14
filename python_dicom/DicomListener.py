@@ -6,6 +6,7 @@ import time
 import threading
 import os
 import glob
+from DicomProcessor import DicomProcessor
 
 class DicomListener:
     def __init__(self, session, base_url, auth, dicom_manager):
@@ -17,6 +18,7 @@ class DicomListener:
         self.dicom_manager = dicom_manager
         self.last_content = "0"
         self.start_time = time.time()
+        self.dicom_processor = DicomProcessor(session, base_url, auth)
 
     def reset_dir(self, path_to_dicoms_dir):
         fileList = glob.glob(str(path_to_dicoms_dir / '*'))
@@ -28,26 +30,19 @@ class DicomListener:
 
     def listen(self):
         while True:
-            with open('.\\python_dicom\\instance_ids.txt', 'r') as f:
-                cur_content = f.read().replace(' ', '').replace('\n', '').replace('\t', '')
-
-            if cur_content == '':
-                continue
-            elif cur_content != self.last_content:
-                print(cur_content)
-                self.dicom_manager.get_new_instance(cur_content)
-                self.last_content = cur_content
-                self.start_time = time.time()
-            else:
-                elapsed_time = time.time() - self.start_time
-                if elapsed_time >= 3:
-                    self.dicom_manager.handle_new_instance()
-                    self.dicom_manager.upload_all_dicom_files(self.path_to_dicoms_dir_handled)
-                    self.reset_dir(self.path_to_dicoms_dir_handled)
-                    self.reset_dir(self.path_to_dicoms_dir_new_file)
-                    with open('.\\python_dicom\\instance_ids.txt', 'w') as f:
+            last_check = self.dicom_processor.get_list_instances()
+            while True:
+                time.sleep(3)
+                current_check = self.dicom_processor.get_list_instances()
+                if last_check is not None and current_check is not None:
+                    if len(current_check) > len(last_check):
+                        print(f"New DICOM file(s) have been uploaded to the server. {len(current_check) - len(last_check)}")
+                        difference = [item for item in current_check if item not in last_check]
+                        self.dicom_processor.process_instanceIDs(difference)
+                    else:
                         pass
-                    self.start_time = time.time()
+                        # print("No New")
+                last_check = current_check
     def set_path_to_dicoms_dir_handled(self, path):
         self.path_to_dicoms_dir_handled = path
 

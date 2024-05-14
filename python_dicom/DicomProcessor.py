@@ -28,13 +28,22 @@ class DicomProcessor:
         else:
             print('ERROR!!!')
     
-    def process_new_instance(self, instanceID):
+    def process_instanceID(self, instanceID):
         instance = self.dicom_client.get_instance_by_ID(instanceID)
         dicom_file_data = self.dicom_client.get_dicom_file_data(instance)
         if dicom_file_data is not None:
-            self.dicom_filewriter.write_dicom_file_data(dicom_file_data, "new_file", instance['MainDicomTags']['InstanceNumber'])
+            self.dicom_filewriter.write_dicom_file_data1(dicom_file_data, "new_file", instance['MainDicomTags']['InstanceNumber'])
         else:
             print('ERROR!!!')
+    
+    def process_instanceIDs(self, instanceIDs):
+        for instanceID in instanceIDs:
+            instance = self.dicom_client.get_instance_by_ID(instanceID)
+            dicom_file_data = self.dicom_client.get_dicom_file_data(instance)
+            if dicom_file_data is not None:
+                self.dicom_filewriter.write_dicom_file_data1(dicom_file_data, "new_file", instance['MainDicomTags']['InstanceNumber'])
+            else:
+                print('ERROR!!!')
     
     def process_count_instance(self, series):
         return len(series['Instances'])
@@ -47,7 +56,7 @@ class DicomProcessor:
         # Extract the 'Changes' list from the response
         changes = data.get('Changes', [])
     
-        cur_instances = [change for change in changes if change.get('ChangeType') == 'NewInstance']
+        cur_instances = [change.get('ID') for change in changes if change.get('ChangeType') == 'NewInstance']
         return cur_instances
     
 

@@ -4,7 +4,7 @@ from pathlib import Path
 from pydicom.filebase import DicomBytesIO
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-path_to_dicoms_dir = Path('.\\dicom_files')
+path_to_dicoms_dir = Path('.\\dicom_files_dowload')
 
 base_url = 'http://localhost:8042'
 

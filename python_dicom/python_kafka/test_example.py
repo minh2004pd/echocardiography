@@ -38,7 +38,7 @@ import os
 #     # Create a client with the MinIO server playground, its access key
 #     # and secret key.
 #     client = Minio("localhost:9010",
-#         access_key="datvuong",
+#         access_key="test123",
 #         secret_key="19082004",
 #         secure=False
 #     )
@@ -72,8 +72,8 @@ def fput_minio(local_image_url, filename):
     # Create a client with the MinIO server playground, its access key
     # and secret key.
     client = Minio("localhost:9010",
-        access_key="datvuong",
-        secret_key="19082004",
+        access_key="test123",
+        secret_key="05112004pd",
         secure=False
     )
 
@@ -115,7 +115,7 @@ def fput_minio(local_image_url, filename):
 #     # Create a client with the MinIO server playground, its access key
 #     # and secret key.
 #     client = Minio("localhost:9010",
-#         access_key="datvuong",
+#         access_key="test123",
 #         secret_key="19082004",
 #         secure=False
 #     )
@@ -139,8 +139,8 @@ def fget_minio(image_url):
     # Create a client with the MinIO server playground, its access key
     # and secret key.
     client = Minio("localhost:9010",
-        access_key="datvuong",
-        secret_key="19082004",
+        access_key="test123",
+        secret_key="05112004pd",
         secure=False
     )
 
@@ -153,7 +153,7 @@ def fget_minio(image_url):
     file_name = filename
 
     # Local file path where the fetched file will be saved
-    local_file_path = "D:/kc4.0_boilerplate-main/kc4.0_boilerplate-main/testsave" + file_name
+    local_file_path = "D:\OneDrive\\Máy tính\\python_dicom\\dicom_files_import\\new_file_dicom" + file_name
     print(local_file_path)
 
     client.fget_object(bucket_name, file_name, local_file_path)

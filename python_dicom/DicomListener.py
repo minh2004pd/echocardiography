@@ -6,7 +6,9 @@ import time
 import threading
 import os
 import glob
+import pydicom
 from DicomProcessor import DicomProcessor
+from io import BytesIO
 
 class DicomListener:
     def __init__(self, session, base_url, auth, dicom_manager):
@@ -27,6 +29,13 @@ class DicomListener:
                 os.remove(filePath)
             except:
                 print("Error while deleting file : ", filePath)
+    
+    def check(self, difference):
+        for id in difference:
+            instance = self.dicom_client.get_instance_by_ID(id)
+            dicom_file_data = self.dicom_client.get_dicom_file_data(instance)
+            ds = pydicom.dcmread(BytesIO(dicom_file_data))
+            sop_instance_uid = ds.SOPInstanceUID
 
     def listen(self):
         while True:

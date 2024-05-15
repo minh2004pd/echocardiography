@@ -7,6 +7,7 @@ import asyncio
 from datetime import datetime
 from pathlib import Path
 from DicomListener import DicomListener
+import dicom2jpg
 
 class DicomManager:
     def __init__(self, session, base_url, auth):
@@ -81,6 +82,10 @@ class DicomManager:
 
     def handle_new_instance(self):
         self.dicom_handler.handle_dicom1()
+    
+    # def convert_dicom2png(self, dicom_dir, png_dir):
+    #     dicom2jpg.dicom2png(dicom_dir, png_dir)
+
     
     def start_listening(self):
         self.dicom_listener.listen()

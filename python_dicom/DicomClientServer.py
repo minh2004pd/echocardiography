@@ -3,6 +3,7 @@ class DicomClientServer:
         self.session = session
         self.base_url = base_url
         self.auth = auth
+        self.last = 0
     
     def get_studies(self):
         response = self.session.get(f'{self.base_url}/studies', auth=self.auth)
@@ -49,6 +50,13 @@ class DicomClientServer:
     
     def get_changes(self):
         # Create the URL for the instance
-        url = f'{self.base_url}/changes/'
+        url = f'{self.base_url}/changes/?limit=300&since={self.last}'
         response = self.session.get(url, auth=self.auth)
+        data = response.json()
+
+        # Extract the last flag
+        last_flag = data.get('lastFlag', None)
+        if last_flag is not None and last_flag > self.last:
+            self.last = last_flag
+            
         return response.json()

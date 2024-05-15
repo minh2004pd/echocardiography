@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 import random
 import asyncio
 from consumer import KafkaEventConsumer
@@ -16,6 +15,8 @@ import os
 import requests
 import multiprocessing
 import time
+from helper import *
+from datetime import datetime
 
 base_url = 'http://localhost:8042'
 
@@ -37,6 +38,13 @@ consumer = KafkaEventConsumer(
     group="consumer_1"
 )
 
+# Định nghĩa Consumer
+consumer1 = KafkaEventConsumer(
+    bootstrap_servers=["localhost:9092"],
+    topics=["broncho_segment_annots"],
+    group="consumer_1"
+)
+
 # Định nghĩa Producer
 producer = KafkaEventProducer(
     bootstrap_servers=["localhost:9092"],
@@ -51,12 +59,10 @@ client = Minio("localhost:9010",
     secure=False
 )
 
-def fput_minio(local_image_url, filename):
-    # The file to upload, change this path if needed
+def fput_minio(local_image_url, filename, local_dicom_url):
     source_file = local_image_url
-
     # Load the DICOM file
-    ds = pydicom.dcmread(source_file)
+    ds = pydicom.dcmread(local_dicom_url)
 
     # Get the information
     modality = ds.Modality
@@ -79,7 +85,7 @@ def fput_minio(local_image_url, filename):
         bucket_name, destination_file, source_file,
     )
     print(
-        source_file, "successfully uploaded as object",
+        local_image_url, "successfully uploaded as object",
         destination_file, "to bucket", bucket_name,
     )
     final_annots_path = bucket_name + "/" + destination_file
@@ -102,17 +108,31 @@ def fget_minio(image_url):
 
 # Xử lý event
 async def handle_message1(message):
+    dicom_path = os.path.join(root_dir, 'dicom_files_upload', 'dicom_files')
+
     offset = message.offset
     topic = message.topic
     partition = message.partition
     data = json.loads(message.value)
-    print(offset, topic, partition, data)
+    # print(offset, topic, partition, data)
 
     # Kéo ảnh từ minio về
     try:
-        local_file_path, filename = fget_minio(data["image_url"])
+        local_file_path, filename = fget_minio(data["annotation"])
     except S3Error as exc:
         print("error occurred.", exc)
+    
+    name, extension = os.path.splitext(filename)
+    
+    png2dicom(data, local_file_path, os.path.join(dicom_path, f'{name}.dcm'))
+
+    sop_instance_uid = data['SOPInstanceUID']
+
+    # Write the SOPInstanceUID to a text file
+    with open(os.path.join(root_dir, 'handled_id.txt'), 'a') as f:
+        f.write('\n' + sop_instance_uid)
+
+    dicom_manager.upload_dicom_file(os.path.join(dicom_path, f'{name}.dcm'))
 
     
 
@@ -122,6 +142,7 @@ async def handle_message(message):
     topic = message.topic
     partition = message.partition
     data = json.loads(message.value)
+    png2dicom(data, )
     print(offset, topic, partition, data)
 
     # Kéo ảnh từ minio về
@@ -165,23 +186,49 @@ async def main():
 
     # dicom_manager.get_all_studies()
     # Construct the path to the dicom_files_download directory
-    directory = os.path.join(root_dir, 'dicom_files_import', 'new_file')
-    # await producer.start()
+    directory_dicom = os.path.join(root_dir, 'dicom_files_import', 'new_file')
+    directory_png = os.path.join(root_dir, 'dicom_files_import', 'new_file_png')
+    await producer.start()
+
+    # consumer1.handle = handle_message1
+    # await consumer1.start()
 
     while True:
-        for filename in os.listdir(directory):
+        for filename in os.listdir(directory_dicom):
             if filename.endswith(".dcm"):
-                local_image_url = os.path.join(directory, filename)
-                path_fput, type = fput_minio(local_image_url,filename)
+                name, extension = os.path.splitext(filename)
+
+                local_dicom_url = os.path.join(directory_dicom, filename)
+                local_png_url = os.path.join(directory_png, f'{name}.png')
+                ds1 = pydicom.dcmread(local_dicom_url)
+
+                dicom_to_png(local_dicom_url, local_png_url)
+
+                path_fput, type = fput_minio(local_png_url,f'{name}.png', local_dicom_url)
                 # Giả lập 1 event dummy
                 data = {
                     "task_id": str(uuid.uuid4()), 
                     "image_type": type,
                     "image_url": path_fput,
-                    "time": datetime.now().isoformat()
+                    "time": datetime.now().isoformat(),
+                    "PatientID": getattr(ds1, 'PatientID', None),
+                    "PatientBirthDate": getattr(ds1, 'PatientBirthDate', None),
+                    "PatientSex": getattr(ds1, 'PatientSex', None),
+                    "StudyDate": getattr(ds1, 'StudyDate', None),
+                    "AccessionNumber": getattr(ds1, 'AccessionNumber', None),
+                    "ReferringPhysicianName": getattr(ds1, 'ReferringPhysicianName', None),
+                    "StudyInstanceUID": getattr(ds1, 'StudyInstanceUID', None),
+                    "StudyID": getattr(ds1, 'StudyID', None),
+                    "RequestedProcedureDescription": getattr(ds1, 'RequestedProcedureDescription', None),
+                    "InstanceNumber": getattr(ds1, 'InstanceNumber', None),
+                    "BodyPartExamined": getattr(ds1, 'BodyPartExamined', None),
+                    "Modality": getattr(ds1, 'Modality', None),
+                    "SOPInstanceUID": getattr(ds1, 'SOPInstanceUID', None)
                 }
-                os.remove(local_image_url)  # Delete the file
-                # await producer.flush(data, "broncho_segment")
+
+                os.remove(local_dicom_url) 
+                os.remove(local_png_url) 
+                await producer.flush(data, "broncho_segment")
 
     # Wait for a while before checking the directory again
         time.sleep(3)  # 10 seconds

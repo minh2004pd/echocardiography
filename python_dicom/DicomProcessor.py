@@ -2,6 +2,9 @@ from DicomFileWriter import DicomFileWriter
 from DicomClientServer import DicomClientServer
 import threading
 import time
+import pydicom
+import os
+from io import BytesIO
 
 class DicomProcessor:
     def __init__(self, session, base_url, auth):
@@ -10,6 +13,7 @@ class DicomProcessor:
         self.auth = auth
         self.dicom_client = DicomClientServer(session, base_url, auth)
         self.dicom_filewriter = DicomFileWriter()
+        self.root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     def process_study(self, study, name):
         series_list = self.dicom_client.get_series(study)
@@ -41,7 +45,17 @@ class DicomProcessor:
             instance = self.dicom_client.get_instance_by_ID(instanceID)
             dicom_file_data = self.dicom_client.get_dicom_file_data(instance)
             if dicom_file_data is not None:
-                self.dicom_filewriter.write_dicom_file_data1(dicom_file_data, "new_file", instance['MainDicomTags']['InstanceNumber'])
+                ds = pydicom.dcmread(BytesIO(dicom_file_data))
+                sop_instance_uid = ds.SOPInstanceUID
+                found_in_file = False
+                with open(os.path.join(self.root_dir, 'handled_id.txt'), 'r') as f:
+                    for line in f:
+                        if sop_instance_uid in line:
+                            print("YES")
+                            found_in_file = True
+                            break
+                if not found_in_file:
+                    self.dicom_filewriter.write_dicom_file_data1(dicom_file_data, "new_file", instance['MainDicomTags']['InstanceNumber'])
             else:
                 print('ERROR!!!')
     
